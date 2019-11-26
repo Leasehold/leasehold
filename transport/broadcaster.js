@@ -47,12 +47,12 @@ class Broadcaster {
 		// Broadcast routes
 		this.routes = [
 			{
-				path: 'capitalisk:postTransactions',
+				path: 'leasehold:postTransactions',
 				collection: 'transactions',
 				object: 'transaction',
 			},
 			{
-				path: 'capitalisk:postSignatures',
+				path: 'leasehold:postSignatures',
 				collection: 'signatures',
 				object: 'signature',
 			},

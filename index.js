@@ -18,17 +18,17 @@ const { config: DefaultConfig } = require('./defaults');
 const Chain = require('./chain');
 const { migrations } = require('./migrations');
 const BaseModule = require('lisk-framework/src/modules/base_module');
-const MODULE_ALIAS = 'capitalisk';
+const MODULE_ALIAS = 'leasehold';
 
 /* eslint-disable class-methods-use-this */
 
 /**
- * Capitalisk module specification
+ * Leasehold module specification
  *
  * @namespace Framework.Modules
- * @type {module.CapitaliskModule}
+ * @type {module.LeaseholdModule}
  */
-module.exports = class CapitaliskModule extends BaseModule {
+module.exports = class LeaseholdModule extends BaseModule {
 	constructor(options) {
 		super({...DefaultConfig.default, ...options});
 
@@ -145,7 +145,7 @@ module.exports = class CapitaliskModule extends BaseModule {
 			[MODULE_ALIAS]: migrations
 		});
 		await this.chain.bootstrap();
-		channel.publish('capitalisk:bootstrap');
+		channel.publish('leasehold:bootstrap');
 	}
 
 	async unload() {

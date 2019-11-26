@@ -213,7 +213,7 @@ class Rounds {
 				.then(() => {
 					if (scope.finishRound) {
 						return promised.land().then(() => {
-							library.channel.publish('capitalisk:rounds:change', { number: round });
+							library.channel.publish('leasehold:rounds:change', { number: round });
 						});
 					}
 					return true;

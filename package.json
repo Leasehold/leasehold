@@ -1,13 +1,13 @@
 {
-  "name": "capitalisk",
+  "name": "leasehold",
   "version": "1.1.0",
-  "description": "Capitalisk sidechain",
+  "description": "Leasehold sidechain",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "capitalisk",
+    "leasehold",
     "lisk",
     "sidechain"
   ],
@@ -23,10 +23,10 @@
   "devDependencies": {},
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jondubois/capitalisk.git"
+    "url": "git+https://github.com/Leasehold/leasehold-chain.git"
   },
   "bugs": {
-    "url": "https://github.com/jondubois/capitalisk/issues"
+    "url": "https://github.com/Leasehold/leasehold-chain/issues"
   },
-  "homepage": "https://github.com/jondubois/capitalisk#readme"
+  "homepage": "https://github.com/Leasehold/leasehold-chain#readme"
 }

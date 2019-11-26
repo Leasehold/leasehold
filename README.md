@@ -1,2 +1,2 @@
-# capitalisk
-Capitalisk sidechain as a Lisk interchain module
+# Leasehold chain
+Leasehold blockchain as a Lisk Interchain module

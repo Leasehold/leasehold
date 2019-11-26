@@ -178,15 +178,15 @@ module.exports = class Chain {
 					'network:event',
 					async ({ data: { event, data } }) => {
 						try {
-							if (event === 'capitalisk:postTransactions') {
+							if (event === 'leasehold:postTransactions') {
 								await this.transport.postTransactions(data);
 								return;
 							}
-							if (event === 'capitalisk:postSignatures') {
+							if (event === 'leasehold:postSignatures') {
 								await this.transport.postSignatures(data);
 								return;
 							}
-							if (event === 'capitalisk:postBlock') {
+							if (event === 'leasehold:postBlock') {
 								await this.transport.postBlock(data);
 								return;
 							}
@@ -503,22 +503,22 @@ module.exports = class Chain {
 				const transactions = block.transactions.reverse();
 				this.transactionPool.onDeletedTransactions(transactions);
 				this.channel.publish(
-					'capitalisk:transactions:confirmed:change',
+					'leasehold:transactions:confirmed:change',
 					block.transactions,
 				);
 			}
 			this.logger.info(
 				{ id: block.id, height: block.height },
-				'Deleted a block from the capitalisk chain',
+				'Deleted a block from the leasehold chain',
 			);
-			this.channel.publish('capitalisk:blocks:change', block);
+			this.channel.publish('leasehold:blocks:change', block);
 		});
 
 		this.blocks.on(EVENT_NEW_BLOCK, ({ block }) => {
 			if (block.transactions.length) {
 				this.transactionPool.onConfirmedTransactions(block.transactions);
 				this.channel.publish(
-					'capitalisk:transactions:confirmed:change',
+					'leasehold:transactions:confirmed:change',
 					block.transactions,
 				);
 			}
@@ -528,9 +528,9 @@ module.exports = class Chain {
 					height: block.height,
 					numberOfTransactions: block.transactions.length,
 				},
-				'New block added to the capitalisk chain',
+				'New block added to the leasehold chain',
 			);
-			this.channel.publish('capitalisk:blocks:change', block);
+			this.channel.publish('leasehold:blocks:change', block);
 		});
 
 		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {
@@ -542,16 +542,16 @@ module.exports = class Chain {
 		});
 
 		this.channel.invoke('interchain:updateModuleState', {
-			capitalisk: {}
+			leasehold: {}
 		});
 
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
 			this.channel.invoke('interchain:updateModuleState', {
-				capitalisk: { broadhash, height }
+				leasehold: { broadhash, height }
 			});
       this.logger.debug(
 				{ broadhash, height },
-				'Updating the capitalisk chain state',
+				'Updating the leasehold chain state',
 			);
 		});
 
