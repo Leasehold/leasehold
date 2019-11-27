@@ -1,6 +1,6 @@
 {
   "name": "leasehold",
-  "version": "1.1.0",
+  "version": "1.0.0",
   "description": "Leasehold sidechain",
   "main": "index.js",
   "scripts": {
@@ -23,10 +23,10 @@
   "devDependencies": {},
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Leasehold/leasehold-chain.git"
+    "url": "git+https://github.com/Leasehold/leasehold.git"
   },
   "bugs": {
-    "url": "https://github.com/Leasehold/leasehold-chain/issues"
+    "url": "https://github.com/Leasehold/leasehold/issues"
   },
-  "homepage": "https://github.com/Leasehold/leasehold-chain#readme"
+  "homepage": "https://github.com/Leasehold/leasehold#readme"
 }
