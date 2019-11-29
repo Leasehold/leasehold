@@ -51,6 +51,11 @@ const syncInterval = 10000;
 const forgeInterval = 1000;
 
 const ACTIVE_DELEGATES = 39;
+const REWARDS = {
+  DISTANCE: 1,
+  OFFSET: 1,
+  MILESTONES: ['0']
+};
 
 /**
  * Chain Module
@@ -342,9 +347,9 @@ module.exports = class Chain {
 			maxTransactionsPerBlock: this.options.constants
 				.MAX_TRANSACTIONS_PER_BLOCK,
 			activeDelegates: ACTIVE_DELEGATES,
-			rewardDistance: this.options.constants.REWARDS.DISTANCE,
-			rewardOffset: this.options.constants.REWARDS.OFFSET,
-			rewardMileStones: this.options.constants.REWARDS.MILESTONES,
+			rewardDistance: REWARDS.DISTANCE,
+			rewardOffset: REWARDS.OFFSET,
+			rewardMileStones: REWARDS.MILESTONES,
 			totalAmount: this.options.constants.TOTAL_AMOUNT,
 			blockSlotWindow: this.options.constants.BLOCK_SLOT_WINDOW,
 		});
