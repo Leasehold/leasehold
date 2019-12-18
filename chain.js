@@ -52,9 +52,9 @@ const forgeInterval = 1000;
 
 const ACTIVE_DELEGATES = 39;
 const REWARDS = {
-  DISTANCE: 1,
-  OFFSET: 1,
-  MILESTONES: ['0']
+	DISTANCE: 1,
+	OFFSET: 1,
+	MILESTONES: ['0']
 };
 
 /**
@@ -175,9 +175,9 @@ module.exports = class Chain {
 			}
 			this._subscribeToEvents();
 
-      this._startLoader();
-      this._calculateConsensus();
-      await this._startForging();
+	    this._startLoader();
+	    this._calculateConsensus();
+	    await this._startForging();
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
 			if (!this.options.loading.rebuildUpToRound) {
@@ -267,7 +267,7 @@ module.exports = class Chain {
 				this.transport.blocksCommon(action.params || {}),
 			getModuleOptions: async action =>
 				this.options,
-      getLastBlock: async () => this.blocks.lastBlock,
+	    getLastBlock: async () => this.blocks.lastBlock,
 		};
 	}
 
@@ -556,7 +556,7 @@ module.exports = class Chain {
 			this.channel.invoke('interchain:updateModuleState', {
 				leasehold: { broadhash, height }
 			});
-      this.logger.debug(
+	    this.logger.debug(
 				{ broadhash, height },
 				'Updating the leasehold chain state',
 			);
