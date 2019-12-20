@@ -24,9 +24,23 @@ const exceptionsHandlers = require('./exceptions_handlers');
 const StateStore = require('../state_store');
 
 const validateTransactions = exceptions => transactions => {
-	const transactionsResponses = transactions.map(transaction =>
-		transaction.validate(),
-	);
+	const transactionsResponses = transactions.map(transaction => {
+		// This explicitly prevents any funds from being moved out of the burn address 0L.
+		if (transaction.senderId === '0L') {
+			return {
+				id: transaction.id,
+				status: TransactionStatus.FAIL,
+				errors: [
+					new TransactionError(
+						`Funds cannot be sent from the burn address ${transaction.senderId}`,
+						transaction.id,
+						'.senderId',
+					)
+				]
+			};
+		}
+		return transaction.validate();
+	});
 
 	const invalidTransactionResponses = transactionsResponses.filter(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK,
