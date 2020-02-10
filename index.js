@@ -26,13 +26,17 @@ const MODULE_ALIAS = 'leasehold_chain';
  * Leasehold module specification
  *
  * @namespace Framework.Modules
- * @type {module.LeaseholdModule}
+ * @type {module.LeaseholdChainModule}
  */
-module.exports = class LeaseholdModule extends BaseModule {
+module.exports = class LeaseholdChainModule extends BaseModule {
 	constructor(options) {
 		super({...DefaultConfig.default, ...options});
 
 		this.chain = null;
+	}
+
+	static get dependencies() {
+		return ['leasehold_net'];
 	}
 
 	static get alias() {
