@@ -99,13 +99,13 @@ class Transport {
 			this.broadcaster.enqueue(
 				{},
 				{
-					api: 'leasehold:postSignatures',
+					api: 'leasehold_chain:postSignatures',
 					data: {
 						signature,
 					},
 				},
 			);
-			this.channel.publish('leasehold:signature:change', signature);
+			this.channel.publish('leasehold_chain:signature:change', signature);
 		}
 	}
 
@@ -124,13 +124,13 @@ class Transport {
 			this.broadcaster.enqueue(
 				{},
 				{
-					api: 'leasehold:postTransactions',
+					api: 'leasehold_chain:postTransactions',
 					data: {
 						transaction: transactionJSON,
 					},
 				},
 			);
-			this.channel.publish('leasehold:transactions:change', transactionJSON);
+			this.channel.publish('leasehold_chain:transactions:change', transactionJSON);
 		}
 	}
 
@@ -180,7 +180,7 @@ class Transport {
 			{
 				broadhash,
 			},
-			{ api: 'leasehold:postBlock', data: { block } },
+			{ api: 'leasehold_chain:postBlock', data: { block } },
 		);
 	}
 

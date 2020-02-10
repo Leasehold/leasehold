@@ -18,7 +18,7 @@ const { config: DefaultConfig } = require('./defaults');
 const Chain = require('./chain');
 const { migrations } = require('./migrations');
 const BaseModule = require('lisk-framework/src/modules/base_module');
-const MODULE_ALIAS = 'leasehold';
+const MODULE_ALIAS = 'leasehold_chain';
 
 /* eslint-disable class-methods-use-this */
 
@@ -42,7 +42,7 @@ module.exports = class LeaseholdModule extends BaseModule {
 	static get info() {
 		return {
 			author: 'Jonathan Gros-Dubois',
-			version: '1.0.4',
+			version: '1.1.1',
 			name: MODULE_ALIAS,
 		};
 	}
@@ -145,7 +145,7 @@ module.exports = class LeaseholdModule extends BaseModule {
 			[MODULE_ALIAS]: migrations
 		});
 		await this.chain.bootstrap();
-		channel.publish('leasehold:bootstrap');
+		channel.publish('leasehold_chain:bootstrap');
 	}
 
 	async unload() {

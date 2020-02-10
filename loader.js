@@ -178,7 +178,7 @@ class Loader {
 		this.logger.info('Loading signatures from the network');
 
 		const { data: result } = await this.channel.invoke('network:request', {
-			procedure: 'leasehold:getSignatures',
+			procedure: 'leasehold_chain:getSignatures',
 		});
 
 		const errors = validator.validate(definitions.WSSignaturesResponse, result);
@@ -220,7 +220,7 @@ class Loader {
 
 
 		const { data: result } = await this.channel.invoke('network:request', {
-			procedure: 'leasehold:getTransactions',
+			procedure: 'leasehold_chain:getTransactions',
 		});
 
 		const validatorErrors = validator.validate(
@@ -285,7 +285,7 @@ class Loader {
 		const { lastBlock } = this.blocksModule;
 		// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 		const { data } = await this.channel.invoke('network:request', {
-			procedure: 'leasehold:blocks',
+			procedure: 'leasehold_chain:blocks',
 			data: {
 				lastBlockId: lastBlock.id,
 			},
