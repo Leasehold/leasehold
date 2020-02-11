@@ -158,7 +158,11 @@ module.exports = class Chain {
 			await bootstrapCache(this.scope);
 
 			await this.storage.entities.Migration.defineSchema();
-			await this.storage.entities.Migration.applyAll(this.migrations);
+			try {
+				await this.storage.entities.Migration.applyAll(this.migrations);
+			} catch (error) {
+				this.logger.warn('Could not apply some migrations');
+			}
 
 			await this._initModules();
 
