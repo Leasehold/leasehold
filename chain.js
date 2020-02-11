@@ -98,7 +98,6 @@ module.exports = class Chain {
 		this.applicationState = await this.channel.invoke(
 			'app:getApplicationState',
 		);
-
 		this.logger = createLoggerComponent(loggerConfig);
 		const dbLogger =
 			storageConfig.logFileName &&

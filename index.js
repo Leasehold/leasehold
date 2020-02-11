@@ -36,7 +36,7 @@ module.exports = class LeaseholdChainModule extends BaseModule {
 	}
 
 	static get dependencies() {
-		return ['leasehold_net'];
+		return ['app', 'network'];
 	}
 
 	static get alias() {
