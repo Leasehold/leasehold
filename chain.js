@@ -560,7 +560,7 @@ module.exports = class Chain {
 			this.channel.invoke('interchain:updateModuleState', {
 				leasehold_chain: { broadhash, height }
 			});
-	    this.logger.debug(
+			this.logger.debug(
 				{ broadhash, height },
 				'Updating the leasehold chain state',
 			);
