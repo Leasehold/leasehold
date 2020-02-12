@@ -36,6 +36,7 @@ const definitions = require('./schema/definitions');
  */
 class Loader {
 	constructor({
+		moduleAlias,
 		// components
 		channel,
 		logger,
@@ -58,6 +59,7 @@ class Loader {
 		this.blocksToSync = 0;
 		this.retries = 5;
 
+		this.moduleAlias = moduleAlias;
 		this.channel = channel;
 		this.logger = logger;
 		this.storage = storage;
@@ -178,7 +180,7 @@ class Loader {
 		this.logger.info('Loading signatures from the network');
 
 		const { data: result } = await this.channel.invoke('network:request', {
-			procedure: 'leasehold_chain:getSignatures',
+			procedure: `${this.moduleAlias}:getSignatures`,
 		});
 
 		const errors = validator.validate(definitions.WSSignaturesResponse, result);
@@ -220,7 +222,7 @@ class Loader {
 
 
 		const { data: result } = await this.channel.invoke('network:request', {
-			procedure: 'leasehold_chain:getTransactions',
+			procedure: `${this.moduleAlias}:getTransactions`,
 		});
 
 		const validatorErrors = validator.validate(
@@ -285,7 +287,7 @@ class Loader {
 		const { lastBlock } = this.blocksModule;
 		// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 		const { data } = await this.channel.invoke('network:request', {
-			procedure: 'leasehold_chain:blocks',
+			procedure: `${this.moduleAlias}:blocks`,
 			data: {
 				lastBlockId: lastBlock.id,
 			},

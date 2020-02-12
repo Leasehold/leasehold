@@ -31,7 +31,8 @@ const {
 } = require('./extra_transactions');
 
 const BaseModule = require('lisk-framework/src/modules/base_module');
-const MODULE_ALIAS = 'leasehold_chain';
+const DEFAULT_MODULE_ALIAS = 'leasehold_chain';
+const pkg = require('./package.json');
 
 /* eslint-disable class-methods-use-this */
 
@@ -44,6 +45,12 @@ const MODULE_ALIAS = 'leasehold_chain';
 module.exports = class LeaseholdChainModule extends BaseModule {
 	constructor(options) {
 		super({...DefaultConfig.default, ...options});
+		if (!options) {
+			options = {};
+		}
+
+		this.alias = options.alias || DEFAULT_MODULE_ALIAS;
+		this.logger = options.logger;
 
 		this.chain = null;
 	}
@@ -53,14 +60,14 @@ module.exports = class LeaseholdChainModule extends BaseModule {
 	}
 
 	static get alias() {
-		return MODULE_ALIAS;
+		return DEFAULT_MODULE_ALIAS;
 	}
 
 	static get info() {
 		return {
 			author: 'Jonathan Gros-Dubois',
-			version: '1.1.1',
-			name: MODULE_ALIAS,
+			version: pkg.version,
+			name: DEFAULT_MODULE_ALIAS,
 		};
 	}
 
@@ -157,7 +164,8 @@ module.exports = class LeaseholdChainModule extends BaseModule {
 		};
 	}
 
-	async load(channel) {
+	async load(channel, options) {
+		this.options = options;
 		this.options.registeredTransactions = {
 			'0': Object.freeze(TransferTransaction),
 			'1': Object.freeze(SecondSignatureTransaction),
@@ -168,11 +176,11 @@ module.exports = class LeaseholdChainModule extends BaseModule {
 			'6': Object.freeze(InTransferTransaction),
 			'7': Object.freeze(OutTransferTransaction)
 		};
-		this.chain = new Chain(channel, this.options, {
-			[MODULE_ALIAS]: migrations
+		this.chain = new Chain(channel, this.options, this.alias, this.logger, {
+			[this.alias]: migrations
 		});
 		await this.chain.bootstrap();
-		channel.publish('leasehold_chain:bootstrap');
+		channel.publish(`${this.alias}:bootstrap`);
 	}
 
 	async unload() {

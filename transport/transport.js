@@ -39,6 +39,7 @@ const transactionsModule = require('../transactions');
  */
 class Transport {
 	constructor({
+		moduleAlias,
 		// components
 		channel,
 		logger,
@@ -58,6 +59,7 @@ class Transport {
 	}) {
 		this.message = {};
 
+		this.moduleAlias = moduleAlias;
 		this.channel = channel;
 		this.logger = logger;
 		this.storage = storage;
@@ -82,6 +84,7 @@ class Transport {
 			this.logger,
 			this.channel,
 			this.storage,
+			this.moduleAlias
 		);
 	}
 
@@ -99,13 +102,13 @@ class Transport {
 			this.broadcaster.enqueue(
 				{},
 				{
-					api: 'leasehold_chain:postSignatures',
+					api: `${this.moduleAlias}:postSignatures`,
 					data: {
 						signature,
 					},
 				},
 			);
-			this.channel.publish('leasehold_chain:signature:change', signature);
+			this.channel.publish(`${this.moduleAlias}:signature:change`, signature);
 		}
 	}
 
@@ -124,13 +127,13 @@ class Transport {
 			this.broadcaster.enqueue(
 				{},
 				{
-					api: 'leasehold_chain:postTransactions',
+					api: `${this.moduleAlias}:postTransactions`,
 					data: {
 						transaction: transactionJSON,
 					},
 				},
 			);
-			this.channel.publish('leasehold_chain:transactions:change', transactionJSON);
+			this.channel.publish(`${this.moduleAlias}:transactions:change`, transactionJSON);
 		}
 	}
 
@@ -180,7 +183,7 @@ class Transport {
 			{
 				broadhash,
 			},
-			{ api: 'leasehold_chain:postBlock', data: { block } },
+			{ api: `${this.moduleAlias}:postBlock`, data: { block } },
 		);
 	}
 

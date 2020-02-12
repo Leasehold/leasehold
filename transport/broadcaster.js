@@ -34,25 +34,26 @@ const jobsQueue = require('../utils/jobs_queue');
  * @todo Add description for the params
  */
 class Broadcaster {
-	constructor(nonce, broadcasts, transactionPool, logger, channel, storage) {
+	constructor(nonce, broadcasts, transactionPool, logger, channel, storage, moduleAlias) {
 		this.logger = logger;
 		this.transactionPool = transactionPool;
 		this.config = broadcasts;
 		this.channel = channel;
 		this.nonce = nonce;
 		this.storage = storage;
+		this.moduleAlias = moduleAlias;
 
 		this.queue = [];
 
 		// Broadcast routes
 		this.routes = [
 			{
-				path: 'leasehold_chain:postTransactions',
+				path: `${this.moduleAlias}:postTransactions`,
 				collection: 'transactions',
 				object: 'transaction',
 			},
 			{
-				path: 'leasehold_chain:postSignatures',
+				path: `${this.moduleAlias}:postSignatures`,
 				collection: 'signatures',
 				object: 'signature',
 			},

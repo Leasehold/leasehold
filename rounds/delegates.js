@@ -91,6 +91,7 @@ const validateBlockSlot = (
 class Delegates {
 	constructor(scope) {
 		this.delegatesListCache = {};
+		this.moduleAlias = scope.moduleAlias;
 		this.logger = scope.logger;
 		this.storage = scope.storage;
 		this.channel = scope.channel;
@@ -222,7 +223,7 @@ class Delegates {
 		} catch (err) {
 			this.logger.warn(err, 'Failed to insert fork info');
 		}
-		this.channel.publish('leasehold_chain:delegates:fork', fork);
+		this.channel.publish(`${this.moduleAlias}:delegates:fork`, fork);
 	}
 
 	/**

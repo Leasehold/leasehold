@@ -44,6 +44,7 @@ __private.ticking = false;
 class Rounds {
 	constructor(scope) {
 		library = {
+			moduleAlias: scope.moduleAlias,
 			channel: scope.channel,
 			logger: scope.components.logger,
 			storage: scope.components.storage,
@@ -213,7 +214,7 @@ class Rounds {
 				.then(() => {
 					if (scope.finishRound) {
 						return promised.land().then(() => {
-							library.channel.publish('leasehold_chain:rounds:change', { number: round });
+							library.channel.publish(`${library.moduleAlias}:rounds:change`, { number: round });
 						});
 					}
 					return true;

@@ -63,11 +63,12 @@ const REWARDS = {
  * @type {module.Chain}
  */
 module.exports = class Chain {
-	constructor(channel, options, migrations = {}) {
+	constructor(channel, options, moduleAlias, logger, migrations = {}) {
 		this.channel = channel;
 		this.options = {...options};
+		this.moduleAlias = moduleAlias;
+		this.logger = logger;
 		this.migrations = migrations;
-		this.logger = null;
 		this.scope = null;
 		this.slots = null;
 	}
@@ -98,17 +99,13 @@ module.exports = class Chain {
 		this.applicationState = await this.channel.invoke(
 			'app:getApplicationState',
 		);
-		this.logger = createLoggerComponent(loggerConfig);
-		const dbLogger =
-			storageConfig.logFileName &&
-			storageConfig.logFileName === loggerConfig.logFileName
-				? this.logger
-				: createLoggerComponent(
-						Object.assign({
-							...loggerConfig,
-							logFileName: storageConfig.logFileName,
-						}),
-				  );
+
+		const dbLogger = createLoggerComponent(
+			Object.assign({
+				...loggerConfig,
+				logFileName: storageConfig.logFileName,
+			}),
+		);
 
 		global.constants = this.options.constants;
 		global.exceptions = this.options.exceptions;
@@ -189,15 +186,15 @@ module.exports = class Chain {
 					'network:event',
 					async ({ data: { event, data } }) => {
 						try {
-							if (event === 'leasehold_chain:postTransactions') {
+							if (event === `${this.moduleAlias}:postTransactions`) {
 								await this.transport.postTransactions(data);
 								return;
 							}
-							if (event === 'leasehold_chain:postSignatures') {
+							if (event === `${this.moduleAlias}:postSignatures`) {
 								await this.transport.postSignatures(data);
 								return;
 							}
-							if (event === 'leasehold_chain:postBlock') {
+							if (event === `${this.moduleAlias}:postBlock`) {
 								await this.transport.postBlock(data);
 								return;
 							}
@@ -322,6 +319,7 @@ module.exports = class Chain {
 		});
 		this.scope.slots = this.slots;
 		this.rounds = new Rounds({
+			moduleAlias: this.moduleAlias,
 			channel: this.channel,
 			components: {
 				logger: this.logger,
@@ -382,6 +380,7 @@ module.exports = class Chain {
 		});
 		this.scope.modules.peers = this.peers;
 		this.loader = new Loader({
+			moduleAlias: this.moduleAlias,
 			channel: this.channel,
 			logger: this.logger,
 			storage: this.storage,
@@ -413,6 +412,7 @@ module.exports = class Chain {
 			forgingDefaultPassword: this.options.forging.defaultPassword,
 		});
 		this.transport = new Transport({
+			moduleAlias: this.moduleAlias,
 			channel: this.channel,
 			logger: this.logger,
 			storage: this.storage,
@@ -514,7 +514,7 @@ module.exports = class Chain {
 				const transactions = block.transactions.reverse();
 				this.transactionPool.onDeletedTransactions(transactions);
 				this.channel.publish(
-					'leasehold_chain:transactions:confirmed:change',
+					`${this.moduleAlias}:transactions:confirmed:change`,
 					block.transactions,
 				);
 			}
@@ -522,14 +522,14 @@ module.exports = class Chain {
 				{ id: block.id, height: block.height },
 				'Deleted a block from the leasehold chain',
 			);
-			this.channel.publish('leasehold_chain:blocks:change', block);
+			this.channel.publish(`${this.moduleAlias}:blocks:change`, block);
 		});
 
 		this.blocks.on(EVENT_NEW_BLOCK, ({ block }) => {
 			if (block.transactions.length) {
 				this.transactionPool.onConfirmedTransactions(block.transactions);
 				this.channel.publish(
-					'leasehold_chain:transactions:confirmed:change',
+					`${this.moduleAlias}:transactions:confirmed:change`,
 					block.transactions,
 				);
 			}
@@ -541,7 +541,7 @@ module.exports = class Chain {
 				},
 				'New block added to the leasehold chain',
 			);
-			this.channel.publish('leasehold_chain:blocks:change', block);
+			this.channel.publish(`${this.moduleAlias}:blocks:change`, block);
 		});
 
 		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {
@@ -553,12 +553,12 @@ module.exports = class Chain {
 		});
 
 		this.channel.invoke('interchain:updateModuleState', {
-			leasehold_chain: {}
+			[this.moduleAlias]: {}
 		});
 
 		this.blocks.on(EVENT_NEW_BROADHASH, ({ broadhash, height }) => {
 			this.channel.invoke('interchain:updateModuleState', {
-				leasehold_chain: { broadhash, height }
+				[this.moduleAlias]: { broadhash, height }
 			});
 			this.logger.debug(
 				{ broadhash, height },
