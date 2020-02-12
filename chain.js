@@ -100,12 +100,28 @@ module.exports = class Chain {
 			'app:getApplicationState',
 		);
 
-		const dbLogger = createLoggerComponent(
-			Object.assign({
-				...loggerConfig,
-				logFileName: storageConfig.logFileName,
-			}),
-		);
+		// For compatibility as a Lisk or LDEM module
+		let dbLogger;
+		if (this.logger) {
+			dbLogger = createLoggerComponent(
+				Object.assign({
+					...loggerConfig,
+					logFileName: storageConfig.logFileName,
+				}),
+			);
+		} else {
+			this.logger = createLoggerComponent(loggerConfig);
+			dbLogger =
+				storageConfig.logFileName &&
+				storageConfig.logFileName === loggerConfig.logFileName
+					? this.logger
+					: createLoggerComponent(
+						Object.assign({
+							...loggerConfig,
+							logFileName: storageConfig.logFileName,
+						}),
+					);
+		}
 
 		global.constants = this.options.constants;
 		global.exceptions = this.options.exceptions;
