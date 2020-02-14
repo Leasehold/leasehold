@@ -49,13 +49,6 @@ const { Transport } = require('./transport');
 const syncInterval = 10000;
 const forgeInterval = 1000;
 
-const ACTIVE_DELEGATES = 39;
-const REWARDS = {
-	DISTANCE: 1,
-	OFFSET: 1,
-	MILESTONES: ['0']
-};
-
 /**
  * Chain Module
  *
@@ -165,7 +158,7 @@ module.exports = class Chain {
 				applicationState: this.applicationState,
 			};
 
-			await bootstrapStorage(this.scope, ACTIVE_DELEGATES);
+			await bootstrapStorage(this.scope, this.options.constants.ACTIVE_DELEGATES);
 			await bootstrapCache(this.scope);
 
 			await this.storage.entities.Migration.defineSchema();
@@ -350,7 +343,7 @@ module.exports = class Chain {
 		this.slots = new BlockSlots({
 			epochTime: this.options.constants.EPOCH_TIME,
 			interval: this.options.constants.BLOCK_TIME,
-			blocksPerRound: ACTIVE_DELEGATES,
+			blocksPerRound: this.options.constants.ACTIVE_DELEGATES,
 		});
 		this.scope.slots = this.slots;
 		this.rounds = new Rounds({
@@ -364,7 +357,7 @@ module.exports = class Chain {
 			config: {
 				exceptions: this.options.exceptions,
 				constants: {
-					activeDelegates: ACTIVE_DELEGATES,
+					activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 				},
 			},
 		});
@@ -383,10 +376,10 @@ module.exports = class Chain {
 			maxPayloadLength: this.options.constants.MAX_PAYLOAD_LENGTH,
 			maxTransactionsPerBlock: this.options.constants
 				.MAX_TRANSACTIONS_PER_BLOCK,
-			activeDelegates: ACTIVE_DELEGATES,
-			rewardDistance: REWARDS.DISTANCE,
-			rewardOffset: REWARDS.OFFSET,
-			rewardMileStones: REWARDS.MILESTONES,
+			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			rewardDistance: this.options.constants.REWARDS.DISTANCE,
+			rewardOffset: this.options.constants.REWARDS.OFFSET,
+			rewardMileStones: this.options.constants.REWARDS.MILESTONES,
 			totalAmount: this.options.constants.TOTAL_AMOUNT,
 			blockSlotWindow: this.options.constants.BLOCK_SLOT_WINDOW,
 		});
@@ -439,7 +432,7 @@ module.exports = class Chain {
 			transactionPoolModule: this.transactionPool,
 			blocksModule: this.blocks,
 			peersModule: this.peers,
-			activeDelegates: ACTIVE_DELEGATES,
+			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			maxTransactionsPerBlock: this.options.constants
 				.MAX_TRANSACTIONS_PER_BLOCK,
 			forgingDelegates: this.options.forging.delegates,
