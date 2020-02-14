@@ -74,9 +74,7 @@ module.exports = class Chain {
 	}
 
 	async bootstrap() {
-		this.options.genesisBlock = require(
-			`./genesis/${this.options.networkName}/genesis_block.json`
-		);
+		this.options.genesisBlock = require(this.options.genesisBlockPath);
 
 		const loggerConfig = await this.channel.invoke(
 			'app:getComponentConfig',
@@ -196,33 +194,54 @@ module.exports = class Chain {
 	    this._calculateConsensus();
 	    await this._startForging();
 
-			// Avoid receiving blocks/transactions from the network during snapshotting process
-			if (!this.options.loading.rebuildUpToRound) {
-				this.channel.subscribe(
-					'network:event',
-					async ({ data: { event, data } }) => {
+			this.channel.subscribe(
+				`network:event:${this.moduleAlias}:postTransactions`,
+				async ({data}) => {
+					// Avoid receiving blocks/transactions from the network during snapshotting process
+					if (!this.options.loading.rebuildUpToRound) {
 						try {
-							if (event === `${this.moduleAlias}:postTransactions`) {
-								await this.transport.postTransactions(data);
-								return;
-							}
-							if (event === `${this.moduleAlias}:postSignatures`) {
-								await this.transport.postSignatures(data);
-								return;
-							}
-							if (event === `${this.moduleAlias}:postBlock`) {
-								await this.transport.postBlock(data);
-								return;
-							}
+							await this.transport.postTransactions(data);
 						} catch (error) {
 							this.logger.warn(
 								{ error, event },
-								'Received invalid event message',
+								`Received invalid ${this.moduleAlias}:postTransactions message`,
 							);
 						}
-					},
-				);
-			}
+					}
+				},
+			);
+			this.channel.subscribe(
+				`network:event:${this.moduleAlias}:postSignatures`,
+				async ({data}) => {
+					// Avoid receiving blocks/transactions from the network during snapshotting process
+					if (!this.options.loading.rebuildUpToRound) {
+						try {
+							await this.transport.postSignatures(data);
+						} catch (error) {
+							this.logger.warn(
+								{ error, event },
+								`Received invalid ${this.moduleAlias}:postSignatures message`,
+							);
+						}
+					}
+				},
+			);
+			this.channel.subscribe(
+				`network:event:${this.moduleAlias}:postBlock`,
+				async ({data}) => {
+					// Avoid receiving blocks/transactions from the network during snapshotting process
+					if (!this.options.loading.rebuildUpToRound) {
+						try {
+							await this.transport.postBlock(data);
+						} catch (error) {
+							this.logger.warn(
+								{ error, event },
+								`Received invalid ${this.moduleAlias}:postBlock message`,
+							);
+						}
+					}
+				},
+			);
 		} catch (error) {
 			this.logger.fatal('Chain initialization', {
 				message: error.message,
