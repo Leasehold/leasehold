@@ -296,7 +296,7 @@ module.exports = class Chain {
 				this.transport.blocksCommon(action.params || {}),
 			getModuleOptions: async action =>
 				this.options,
-	    getLastBlock: async () => this.blocks.lastBlock,
+			getLastBlock: async () => this.blocks.lastBlock,
 			getMultisigWalletMembers: async action => {
 				return this.storage.adapter.db.query(
 					'select mem_accounts2multisignatures."dependentId" from mem_accounts2multisignatures where mem_accounts2multisignatures."accountId" = $1',
