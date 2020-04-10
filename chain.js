@@ -485,6 +485,7 @@ module.exports = class Chain {
 		this.scope.modules.transactionPool = this.transactionPool;
 		// TODO: Remove - Temporal write to modules for blocks circular dependency
 		this.peers = new Peers({
+			moduleAlias: this.moduleAlias,
 			channel: this.channel,
 			forgingForce: this.options.forging.force,
 			minBroadhashConsensus: this.options.constants.MIN_BROADHASH_CONSENSUS,

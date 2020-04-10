@@ -25,7 +25,8 @@ const MAX_PEERS = 100;
  * @param {scope} scope - App instance
  */
 class Peers {
-	constructor({ channel, forgingForce, minBroadhashConsensus }) {
+	constructor({ moduleAlias, channel, forgingForce, minBroadhashConsensus }) {
+		this.moduleAlias = moduleAlias;
 		this.forgingForce = forgingForce;
 		this.channel = channel;
 		this.minBroadhashConsensus = minBroadhashConsensus;
@@ -50,26 +51,29 @@ class Peers {
 	async calculateConsensus() {
 		const { broadhash } = await this.channel.invoke('app:getApplicationState');
 
-		const activeCount = Math.min(
-			await this.channel.invoke(
-				'network:getUniqueOutboundConnectedPeersCount',
-				{},
-			),
-			MAX_PEERS,
+		const connectedPeers = await this.channel.invoke(
+			'network:getConnectedPeers',
+			{},
 		);
 
-		const matchedCount = Math.min(
-			await this.channel.invoke(
-				'network:getUniqueOutboundConnectedPeersCount',
-				{
-					broadhash,
-				},
-			),
-			MAX_PEERS,
+		const activePeers = connectedPeers.filter(
+			peer => peer.modules && peer.modules[this.moduleAlias]
 		);
 
-		const consensus = +((matchedCount / activeCount) * 100).toPrecision(2);
-		return Number.isNaN(consensus) ? 0 : consensus;
+		const activeCount = Math.min(activePeers.length, MAX_PEERS);
+
+		if (!activeCount) {
+			return 0;
+		}
+
+		const matchingPeers = activePeers.filter(
+			peer => peer.modules[this.moduleAlias].broadhash === broadhash
+		);
+
+		const matchedCount = Math.min(matchingPeers.length, MAX_PEERS);
+
+		//
+		return Math.round(matchedCount * 10000 / activeCount) / 100;
 	}
 
 	// Public methods
