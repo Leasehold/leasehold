@@ -266,6 +266,17 @@ const updateTransactionResponseForExceptionTransactions = (
 	transactions,
 	exceptions,
 ) => {
+	// Adapt error messages for custom blockchains.
+	unprocessableTransactionResponses.forEach((transactionResponse) => {
+		if (transactionResponse.errors && Array.isArray(transactionResponse.errors)) {
+			transactionResponse.errors.forEach((error) => {
+				if (error && error.dataPath === '.balance' && error.message) {
+					error.message = error.message.replace(/ LSK:/g, ' tokens:');
+				}
+			});
+		}
+	});
+
 	const unprocessableTransactionAndResponsePairs = unprocessableTransactionResponses.map(
 		unprocessableTransactionResponse => ({
 			transactionResponse: unprocessableTransactionResponse,
