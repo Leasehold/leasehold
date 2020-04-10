@@ -103,7 +103,7 @@ const verifyTotalSpending = (transactions, stateStore) => {
 					status: TransactionStatus.FAIL,
 					errors: [
 						new TransactionError(
-							`Account does not have enough LSK for total spending. balance: ${senderBalance.toString()}, spending: ${senderTotalSpending.toString()}`,
+							`Account does not have enough tokens for total spending. balance: ${senderBalance.toString()}, spending: ${senderTotalSpending.toString()}`,
 							transaction.id,
 							'.amount',
 						),

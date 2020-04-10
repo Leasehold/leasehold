@@ -101,7 +101,7 @@ class InTransferTransaction extends lisk_transactions_1.BaseTransaction {
         const recipient = store.account.get(dappTransaction.senderId);
         const updatedRecipientBalance = new bignum_1.default(recipient.balance).sub(this.amount);
         if (updatedRecipientBalance.lt(0)) {
-            errors.push(new lisk_transactions_1.TransactionError(`Account does not have enough LSK: ${recipient.address}, balance: ${convertBeddowsToLSK(recipient.balance)}.`, this.id));
+            errors.push(new lisk_transactions_1.TransactionError(`Account does not have enough tokens: ${recipient.address}, balance: ${convertBeddowsToLSK(recipient.balance)}.`, this.id));
         }
         const updatedRecipient = Object.assign({}, recipient, { balance: updatedRecipientBalance.toString() });
         store.account.set(updatedRecipient.address, updatedRecipient);
