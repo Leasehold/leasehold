@@ -49,7 +49,8 @@ class Peers {
 	 */
 	// eslint-disable-next-line class-methods-use-this
 	async calculateConsensus() {
-		const { broadhash } = await this.channel.invoke('app:getApplicationState');
+		const appState = await this.channel.invoke('app:getApplicationState');
+		const broadhash = appState.modules[this.moduleAlias].broadhash;
 
 		const connectedPeers = await this.channel.invoke(
 			'network:getConnectedPeers',
@@ -72,7 +73,6 @@ class Peers {
 
 		const matchedCount = Math.min(matchingPeers.length, MAX_PEERS);
 
-		//
 		return Math.round(matchedCount * 10000 / activeCount) / 100;
 	}
 
