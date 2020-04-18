@@ -50,7 +50,11 @@ class Peers {
 	// eslint-disable-next-line class-methods-use-this
 	async calculateConsensus() {
 		const appState = await this.channel.invoke('app:getApplicationState');
-		const broadhash = appState.modules[this.moduleAlias].broadhash;
+		const moduleInfo = appState.modules[this.moduleAlias];
+		if (!moduleInfo) {
+			return 0;
+		}
+		const { broadhash } = moduleInfo;
 
 		const connectedPeers = await this.channel.invoke(
 			'network:getConnectedPeers',
