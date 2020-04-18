@@ -1,6 +1,6 @@
 {
   "name": "leasehold-chain",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Leasehold sidechain",
   "main": "index.js",
   "scripts": {
