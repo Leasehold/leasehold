@@ -425,6 +425,7 @@ class TransactionPool extends EventEmitter {
 			return this.addVerifiedTransaction(transaction);
 		}
 		if (transactionsResponses[0].status === TransactionStatus.PENDING) {
+			// Do not allow pending multisig transactions because it can be exploited.
 			throw new Error(
 				`Transfer transaction from multisig address is missing some signatures: ${transaction.id}`
 			);
