@@ -391,13 +391,6 @@ class TransactionPool extends EventEmitter {
 		);
 	}
 
-	addMultisignatureTransaction(transaction) {
-		return handleAddTransactionResponse(
-			this.pool.addPendingTransaction(transaction),
-			transaction,
-		);
-	}
-
 	async processUnconfirmedTransaction(transaction) {
 		if (this.transactionInPool(transaction.id)) {
 			throw [
@@ -432,7 +425,9 @@ class TransactionPool extends EventEmitter {
 			return this.addVerifiedTransaction(transaction);
 		}
 		if (transactionsResponses[0].status === TransactionStatus.PENDING) {
-			return this.addMultisignatureTransaction(transaction);
+			throw new Error(
+				`Transfer transaction from multisig address is missing some signatures: ${transaction.id}`
+			);
 		}
 		this.logger.info(`Transaction pool - ${transactionsResponses[0].errors}`);
 		throw transactionsResponses[0].errors;
