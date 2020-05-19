@@ -316,10 +316,16 @@ module.exports = class Chain {
 				return Number(multisigMemberMinSigRows[0].multimin);
 			},
 			getInboundTransactions: async action => {
-				let transactions = await this.storage.adapter.db.query(
-					'select trs.id, trs.type, trs."senderId", trs."senderPublicKey", trs.timestamp, trs."recipientId", trs.amount, trs."transferData", trs.signatures from trs where trs."blockId" = $1 and trs."recipientId" = $2',
-					[action.params.blockId, action.params.walletAddress]
-				);
+				let blockId = action.params.blockId;
+				let limit = action.params.limit;
+				let limitQuery = limit == null ? '' : ' limit $3';
+				let query;
+				if (blockId == null) {
+					query = `select trs.id, trs.type, trs."senderId", trs."senderPublicKey", trs.timestamp, trs."recipientId", trs.amount, trs."transferData", trs.signatures from trs where trs."recipientId" = $1 order by trs.timestamp desc${limitQuery}`;
+				} else {
+					query = `select trs.id, trs.type, trs."senderId", trs."senderPublicKey", trs.timestamp, trs."recipientId", trs.amount, trs."transferData", trs.signatures from trs where trs."recipientId" = $1 and trs."blockId" = $2 order by trs.timestamp desc${limitQuery}`;
+				}
+				let transactions = await this.storage.adapter.db.query(query, [action.params.walletAddress, blockId, limit]);
 				transactions.forEach(txn => {
 					if (txn.transferData) {
 						txn.message = txn.transferData.toString('utf8');
@@ -333,10 +339,16 @@ module.exports = class Chain {
 				return transactions;
 			},
 			getOutboundTransactions: async action => {
-				let transactions = await this.storage.adapter.db.query(
-					'select trs.id, trs.type, trs."senderId", trs."senderPublicKey", trs."timestamp", trs."recipientId", trs."amount", trs."transferData", trs.signatures from trs where trs."blockId" = $1 and trs."senderId" = $2',
-					[action.params.blockId, action.params.walletAddress]
-				);
+				let blockId = action.params.blockId;
+				let limit = action.params.limit;
+				let limitQuery = limit == null ? '' : ' limit $3';
+				let query;
+				if (blockId == null) {
+					query = `select trs.id, trs.type, trs."senderId", trs."senderPublicKey", trs."timestamp", trs."recipientId", trs."amount", trs."transferData", trs.signatures from trs where trs."senderId" = $1 order by trs.timestamp desc${limitQuery}`;
+				} else {
+					query = `select trs.id, trs.type, trs."senderId", trs."senderPublicKey", trs."timestamp", trs."recipientId", trs."amount", trs."transferData", trs.signatures from trs where trs."senderId" = $1 and trs."blockId" = $2 order by trs.timestamp desc${limitQuery}`;
+				}
+				let transactions = await this.storage.adapter.db.query(query, [action.params.walletAddress, blockId, limit]);
 				transactions.forEach(txn => {
 					if (txn.transferData) {
 						txn.message = txn.transferData.toString('utf8');
