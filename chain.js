@@ -316,48 +316,44 @@ module.exports = class Chain {
 				return Number(multisigMemberMinSigRows[0].multimin);
 			},
 			getInboundTransactions: async action => {
-				let blockId = action.params.blockId;
-				let limit = action.params.limit;
-				let limitQuery = limit == null ? '' : ' limit $3';
-				let query;
-				if (blockId == null) {
-					query = `select trs.id, trs.type, trs."senderId", trs."senderPublicKey", trs.timestamp, trs."recipientId", trs.amount, trs."transferData", trs.signatures from trs where trs."recipientId" = $1 order by trs.timestamp desc${limitQuery}`;
-				} else {
-					query = `select trs.id, trs.type, trs."senderId", trs."senderPublicKey", trs.timestamp, trs."recipientId", trs.amount, trs."transferData", trs.signatures from trs where trs."recipientId" = $1 and trs."blockId" = $2 order by trs.timestamp desc${limitQuery}`;
-				}
-				let transactions = await this.storage.adapter.db.query(query, [action.params.walletAddress, blockId, limit]);
-				transactions.forEach(txn => {
-					if (txn.transferData) {
-						txn.message = txn.transferData.toString('utf8');
-					}
-					if (txn.senderPublicKey) {
-						txn.senderPublicKey = txn.senderPublicKey.toString('hex');
-					}
-					delete txn.transferData;
-				});
+				let { fromTimestamp, limit } = action.params;
+				let timestampClause = fromTimestamp == null ? '' : ' and trs.timestamp >= $2';
+				let limitClause = limit == null ? '' : ' limit $3';
+				let transactions = await this.storage.adapter.db.query(
+					`select trs.id, trs.type, trs."senderId", trs."senderPublicKey", trs.timestamp, trs."recipientId", trs.amount, trs."blockId", trs."transferData", trs.signatures from trs where trs."recipientId" = $1${timestampClause} order by trs.timestamp desc${limitClause}`,
+					[action.params.walletAddress, fromTimestamp, limit]
+				);
+				this._sanitizeTransactions(transactions);
 
 				return transactions;
 			},
 			getOutboundTransactions: async action => {
-				let blockId = action.params.blockId;
-				let limit = action.params.limit;
-				let limitQuery = limit == null ? '' : ' limit $3';
-				let query;
-				if (blockId == null) {
-					query = `select trs.id, trs.type, trs."senderId", trs."senderPublicKey", trs."timestamp", trs."recipientId", trs."amount", trs."transferData", trs.signatures from trs where trs."senderId" = $1 order by trs.timestamp desc${limitQuery}`;
-				} else {
-					query = `select trs.id, trs.type, trs."senderId", trs."senderPublicKey", trs."timestamp", trs."recipientId", trs."amount", trs."transferData", trs.signatures from trs where trs."senderId" = $1 and trs."blockId" = $2 order by trs.timestamp desc${limitQuery}`;
-				}
-				let transactions = await this.storage.adapter.db.query(query, [action.params.walletAddress, blockId, limit]);
-				transactions.forEach(txn => {
-					if (txn.transferData) {
-						txn.message = txn.transferData.toString('utf8');
-					}
-					if (txn.senderPublicKey) {
-						txn.senderPublicKey = txn.senderPublicKey.toString('hex');
-					}
-					delete txn.transferData;
-				});
+				let { fromTimestamp, limit } = action.params;
+				let timestampClause = fromTimestamp == null ? '' : ' and trs.timestamp >= $2';
+				let limitClause = limit == null ? '' : ' limit $3';
+				let transactions = await this.storage.adapter.db.query(
+					`select trs.id, trs.type, trs."senderId", trs."senderPublicKey", trs.timestamp, trs."recipientId", trs.amount, trs."blockId", trs."transferData", trs.signatures from trs where trs."senderId" = $1${timestampClause} order by trs.timestamp desc${limitClause}`,
+					[action.params.walletAddress, fromTimestamp, limit]
+				);
+				this._sanitizeTransactions(transactions);
+
+				return transactions;
+			},
+			getInboundTransactionsFromBlock: async action => {
+				let transactions = await this.storage.adapter.db.query(
+					`select trs.id, trs.type, trs."senderId", trs."senderPublicKey", trs.timestamp, trs."recipientId", trs.amount, trs."blockId", trs."transferData", trs.signatures from trs where trs."recipientId" = $1 and trs."blockId" = $2`,
+					[action.params.walletAddress, action.params.blockId]
+				);
+				this._sanitizeTransactions(transactions);
+
+				return transactions;
+			},
+			getOutboundTransactionsFromBlock: async action => {
+				let transactions = await this.storage.adapter.db.query(
+					`select trs.id, trs.type, trs."senderId", trs."senderPublicKey", trs.timestamp, trs."recipientId", trs.amount, trs."blockId", trs."transferData", trs.signatures from trs where trs."senderId" = $1 and trs."blockId" = $2`,
+					[action.params.walletAddress, action.params.blockId]
+				);
+				this._sanitizeTransactions(transactions);
 
 				return transactions;
 			},
@@ -393,6 +389,18 @@ module.exports = class Chain {
 				)[0];
 			},
 		};
+	}
+
+	_sanitizeTransactions(transactions) {
+		transactions.forEach(txn => {
+			if (txn.transferData) {
+				txn.message = txn.transferData.toString('utf8');
+			}
+			if (txn.senderPublicKey) {
+				txn.senderPublicKey = txn.senderPublicKey.toString('hex');
+			}
+			delete txn.transferData;
+		});
 	}
 
 	async cleanup(error) {
