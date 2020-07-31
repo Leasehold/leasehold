@@ -30,7 +30,6 @@ const { Peers } = require('./peers');
 const { TransactionInterfaceAdapter } = require('./interface_adapters');
 const {
 	TransactionPool,
-	EVENT_MULTISIGNATURE_SIGNATURE,
 	EVENT_UNCONFIRMED_TRANSACTION,
 } = require('./transaction_pool');
 const { Rounds } = require('./rounds');
@@ -204,22 +203,6 @@ module.exports = class Chain {
 				},
 			);
 			this.channel.subscribe(
-				`network:event:${this.moduleAlias}:postSignatures`,
-				async ({data}) => {
-					// Avoid receiving blocks/transactions from the network during snapshotting process
-					if (!this.options.loading.rebuildUpToRound) {
-						try {
-							await this.transport.postSignatures(data);
-						} catch (error) {
-							this.logger.warn(
-								{ error, event },
-								`Received invalid ${this.moduleAlias}:postSignatures message`,
-							);
-						}
-					}
-				},
-			);
-			this.channel.subscribe(
 				`network:event:${this.moduleAlias}:postBlock`,
 				async ({data}) => {
 					// Avoid receiving blocks/transactions from the network during snapshotting process
@@ -264,9 +247,6 @@ module.exports = class Chain {
 					action.params.forging,
 				),
 			getTransactions: async () => this.transport.getTransactions(),
-			getSignatures: async () => this.transport.getSignatures(),
-			postSignature: async action =>
-				this.transport.postSignature(action.params),
 			getForgingStatusForAllDelegates: async () =>
 				this.forger.getForgingStatusForAllDelegates(),
 			getTransactionsFromPool: async ({ params }) =>
@@ -697,14 +677,6 @@ module.exports = class Chain {
 				'Updating the leasehold chain state',
 			);
 		});
-
-		this.transactionPool.on(EVENT_MULTISIGNATURE_SIGNATURE, signature => {
-			this.logger.trace(
-				{ signature },
-				'Received EVENT_MULTISIGNATURE_SIGNATURE',
-			);
-			this.transport.onSignature(signature, true);
-		});
 	}
 
 	_unsubscribeToEvents() {
@@ -713,6 +685,5 @@ module.exports = class Chain {
 		this.blocks.removeAllListeners(EVENT_NEW_BLOCK);
 		this.blocks.removeAllListeners(EVENT_NEW_BROADHASH);
 		this.blocks.removeAllListeners(EVENT_UNCONFIRMED_TRANSACTION);
-		this.blocks.removeAllListeners(EVENT_MULTISIGNATURE_SIGNATURE);
 	}
 };
