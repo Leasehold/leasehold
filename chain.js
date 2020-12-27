@@ -182,9 +182,9 @@ module.exports = class Chain {
 			}
 			this._subscribeToEvents();
 
-	    this._startLoader();
-	    this._calculateConsensus();
-	    await this._startForging();
+			this._startLoader();
+			this._calculateConsensus();
+			await this._startForging();
 
 			this.channel.subscribe(
 				`network:event:${this.moduleAlias}:postTransactions`,
@@ -278,10 +278,7 @@ module.exports = class Chain {
 				this.options,
 			getLastBlock: async () => this.blocks.lastBlock,
 			getMultisigWalletMembers: async action => {
-				return this.storage.adapter.db.query(
-					'select mem_accounts2multisignatures."dependentId" from mem_accounts2multisignatures where mem_accounts2multisignatures."accountId" = $1',
-					[action.params.walletAddress]
-				);
+				return this._getMultisigWalletMembers(action.params.walletAddress);
 			},
 			getMinMultisigRequiredSignatures: async action => {
 				let multisigMemberMinSigRows = await this.storage.adapter.db.query(
@@ -303,9 +300,7 @@ module.exports = class Chain {
 					`select trs.id, trs.type, trs."senderId", trs."senderPublicKey", trs.timestamp, trs."recipientId", trs.amount, trs."blockId", trs."transferData", trs.signatures from trs where trs."recipientId" = $1${timestampClause} order by trs.timestamp desc${limitClause}`,
 					[action.params.walletAddress, fromTimestamp, limit]
 				);
-				this._sanitizeTransactions(transactions);
-
-				return transactions;
+				return this._sanitizeTransactions(transactions);
 			},
 			getOutboundTransactions: async action => {
 				let { fromTimestamp, limit } = action.params;
@@ -315,27 +310,21 @@ module.exports = class Chain {
 					`select trs.id, trs.type, trs."senderId", trs."senderPublicKey", trs.timestamp, trs."recipientId", trs.amount, trs."blockId", trs."transferData", trs.signatures from trs where trs."senderId" = $1${timestampClause} order by trs.timestamp desc${limitClause}`,
 					[action.params.walletAddress, fromTimestamp, limit]
 				);
-				this._sanitizeTransactions(transactions);
-
-				return transactions;
+				return this._sanitizeTransactions(transactions);
 			},
 			getInboundTransactionsFromBlock: async action => {
 				let transactions = await this.storage.adapter.db.query(
 					`select trs.id, trs.type, trs."senderId", trs."senderPublicKey", trs.timestamp, trs."recipientId", trs.amount, trs."blockId", trs."transferData", trs.signatures from trs where trs."recipientId" = $1 and trs."blockId" = $2`,
 					[action.params.walletAddress, action.params.blockId]
 				);
-				this._sanitizeTransactions(transactions);
-
-				return transactions;
+				return this._sanitizeTransactions(transactions);
 			},
 			getOutboundTransactionsFromBlock: async action => {
 				let transactions = await this.storage.adapter.db.query(
 					`select trs.id, trs.type, trs."senderId", trs."senderPublicKey", trs.timestamp, trs."recipientId", trs.amount, trs."blockId", trs."transferData", trs.signatures from trs where trs."senderId" = $1 and trs."blockId" = $2`,
 					[action.params.walletAddress, action.params.blockId]
 				);
-				this._sanitizeTransactions(transactions);
-
-				return transactions;
+				return this._sanitizeTransactions(transactions);
 			},
 			getLastBlockAtTimestamp: async action => {
 				return (
@@ -371,16 +360,59 @@ module.exports = class Chain {
 		};
 	}
 
-	_sanitizeTransactions(transactions) {
-		transactions.forEach(txn => {
-			if (txn.transferData) {
-				txn.message = txn.transferData.toString('utf8');
-			}
-			if (txn.senderPublicKey) {
-				txn.senderPublicKey = txn.senderPublicKey.toString('hex');
-			}
-			delete txn.transferData;
+	async _getMultisigWalletMembers(walletAddress) {
+		return this.storage.adapter.db.query(
+			'select mem_accounts2multisignatures."dependentId" from mem_accounts2multisignatures where mem_accounts2multisignatures."accountId" = $1',
+			[walletAddress]
+		);
+	}
+
+	async _getMultisigMemberWalletAddress(transaction, signature) {
+		let { senderId } = transaction;
+		let multisigMemberList = await this._getMultisigWalletMembers(senderId);
+		let memberPublicKeyList = multisigMemberList.map(member => member.dependentId);
+
+		let { signature: txnSignature, signSignature, signatures, ...transactionToHash } = transaction;
+		let memberPublicKey = memberPublicKeyList.find((publicKey) => {
+			let txnHash = liskCryptography.hash(liskTransactions.utils.getTransactionBytes(transactionToHash));
+			return liskCryptography.verifyData(txnHash, signature, publicKey);
 		});
+		if (!memberPublicKey) {
+			return null;
+		}
+		return liskCryptography.getAddressFromPublicKey(memberPublicKey);
+	}
+
+	async _sanitizeTransactions(transactions) {
+		return Promise.all(
+			transactions.map(async (txn) => {
+				let newTxn = {
+					...txn
+				};
+				if (txn.transferData) {
+					newTxn.message = txn.transferData.toString('utf8');
+					delete newTxn.transferData;
+				}
+				if (txn.senderPublicKey) {
+					newTxn.senderPublicKey = txn.senderPublicKey.toString('hex');
+				}
+				if (txn.recipientId) {
+					newTxn.recipientAddress = txn.recipientId;
+					delete newTxn.recipientId;
+				}
+				newTxn.senderAddress = txn.senderId;
+				delete newTxn.senderId;
+				if (txn.signatures) {
+					newTxn.signatures = txn.signatures.map((signature) => {
+						return {
+							signerAddress: await this._getMultisigMemberWalletAddress(txn, signature),
+							signature
+						};
+					});
+				}
+				return newTxn;
+			})
+		);
 	}
 
 	async cleanup(error) {
