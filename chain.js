@@ -19,6 +19,8 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 	require('./utils/newrelic_lisk');
 }
 
+const liskCryptography = require('@liskhq/lisk-cryptography');
+const liskTransactions = require('@liskhq/lisk-transactions');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const { Sequence } = require('./utils/sequence');
 const { createStorageComponent } = require('lisk-framework/src/components/storage');
@@ -278,7 +280,8 @@ module.exports = class Chain {
 				this.options,
 			getLastBlock: async () => this.blocks.lastBlock,
 			getMultisigWalletMembers: async action => {
-				return this._getMultisigWalletMembers(action.params.walletAddress);
+				let multisigMembers = await this._getMultisigWalletMembers(action.params.walletAddress);
+				return multisigMembers.map(member => liskCryptography.getAddressFromPublicKey(member.dependentId));
 			},
 			getMinMultisigRequiredSignatures: async action => {
 				let multisigMemberMinSigRows = await this.storage.adapter.db.query(
@@ -293,22 +296,22 @@ module.exports = class Chain {
 				return Number(multisigMemberMinSigRows[0].multimin);
 			},
 			getInboundTransactions: async action => {
-				let { fromTimestamp, limit } = action.params;
+				let { walletAddress, fromTimestamp, limit } = action.params;
 				let timestampClause = fromTimestamp == null ? '' : ' and trs.timestamp >= $2';
 				let limitClause = limit == null ? '' : ' limit $3';
 				let transactions = await this.storage.adapter.db.query(
 					`select trs.id, trs.type, trs."senderId", trs."senderPublicKey", trs.timestamp, trs."recipientId", trs.amount, trs."blockId", trs."transferData", trs.signatures from trs where trs."recipientId" = $1${timestampClause} order by trs.timestamp desc${limitClause}`,
-					[action.params.walletAddress, fromTimestamp, limit]
+					[walletAddress, fromTimestamp, limit]
 				);
 				return this._sanitizeTransactions(transactions);
 			},
 			getOutboundTransactions: async action => {
-				let { fromTimestamp, limit } = action.params;
+				let { walletAddress, fromTimestamp, limit } = action.params;
 				let timestampClause = fromTimestamp == null ? '' : ' and trs.timestamp >= $2';
 				let limitClause = limit == null ? '' : ' limit $3';
 				let transactions = await this.storage.adapter.db.query(
 					`select trs.id, trs.type, trs."senderId", trs."senderPublicKey", trs.timestamp, trs."recipientId", trs.amount, trs."blockId", trs."transferData", trs.signatures from trs where trs."senderId" = $1${timestampClause} order by trs.timestamp desc${limitClause}`,
-					[action.params.walletAddress, fromTimestamp, limit]
+					[walletAddress, fromTimestamp, limit]
 				);
 				return this._sanitizeTransactions(transactions);
 			},
@@ -373,6 +376,13 @@ module.exports = class Chain {
 		let memberPublicKeyList = multisigMemberList.map(member => member.dependentId);
 
 		let { signature: txnSignature, signSignature, signatures, ...transactionToHash } = transaction;
+		if (!transactionToHash.asset) {
+			transactionToHash.asset = {};
+		}
+		if (transactionToHash.transferData) {
+			transactionToHash.asset.data = transactionToHash.transferData.toString('utf8');
+		}
+		transactionToHash.senderPublicKey = transactionToHash.senderPublicKey.toString('hex');
 		let memberPublicKey = memberPublicKeyList.find((publicKey) => {
 			let txnHash = liskCryptography.hash(liskTransactions.utils.getTransactionBytes(transactionToHash));
 			return liskCryptography.verifyData(txnHash, signature, publicKey);
@@ -402,13 +412,16 @@ module.exports = class Chain {
 				}
 				newTxn.senderAddress = txn.senderId;
 				delete newTxn.senderId;
-				if (txn.signatures) {
-					newTxn.signatures = txn.signatures.map((signature) => {
-						return {
-							signerAddress: await this._getMultisigMemberWalletAddress(txn, signature),
-							signature
-						};
-					});
+				if (txn.type === 0 && txn.signatures) {
+					let signatureList = txn.signatures.split(',');
+					newTxn.signatures = await Promise.all(
+						signatureList.map(async (signature) => {
+							return {
+								signerAddress: await this._getMultisigMemberWalletAddress(txn, signature),
+								signature
+							};
+						})
+					);
 				}
 				return newTxn;
 			})
