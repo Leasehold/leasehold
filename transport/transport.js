@@ -380,7 +380,7 @@ class Transport {
 			};
 			if (transaction.signatures) {
 				sanitizedTransaction.signatures = transaction.signatures.map(
-					signaturePacket => signaturePacket.signature
+					signaturePacket => typeof signaturePacket === 'string' ? signaturePacket : signaturePacket && signaturePacket.signature
 				);
 			}
 			const id = await this._receiveTransaction(sanitizedTransaction);
