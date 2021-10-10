@@ -14,18 +14,13 @@
 
 'use strict';
 
-if (process.env.NEW_RELIC_LICENSE_KEY) {
-	// eslint-disable-next-line global-require
-	require('./utils/newrelic_lisk');
-}
-
 const liskCryptography = require('@liskhq/lisk-cryptography');
 const liskTransactions = require('@liskhq/lisk-transactions');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const { Sequence } = require('./utils/sequence');
-const { createStorageComponent } = require('lisk-framework/src/components/storage');
-const { createCacheComponent } = require('lisk-framework/src/components/cache');
-const { createLoggerComponent } = require('lisk-framework/src/components/logger');
+const { createStorageComponent } = require('leasehold-lisk-framework/src/components/storage');
+const { createCacheComponent } = require('leasehold-lisk-framework/src/components/cache');
+const { createLoggerComponent } = require('leasehold-lisk-framework/src/components/logger');
 const { bootstrapStorage, bootstrapCache } = require('./init_steps');
 const jobQueue = require('./utils/jobs_queue');
 const { Peers } = require('./peers');

@@ -18,7 +18,7 @@ const _ = require('lodash');
 const path = require('path');
 const {
 	entities: { Transaction: TransactionEntity },
-} = require('lisk-framework/src/components/storage');
+} = require('leasehold-lisk-framework/src/components/storage');
 
 /**
  * Basic Transaction

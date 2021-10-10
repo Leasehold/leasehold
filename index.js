@@ -30,7 +30,7 @@ const {
 	OutTransferTransaction
 } = require('./extra_transactions');
 
-const BaseModule = require('lisk-framework/src/modules/base_module');
+const BaseModule = require('leasehold-lisk-framework/src/modules/base_module');
 const DEFAULT_MODULE_ALIAS = 'leasehold_chain';
 const pkg = require('./package.json');
 

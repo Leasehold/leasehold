@@ -21,7 +21,7 @@ const {
 	Transaction,
 } = require('../components/storage/entities');
 
-const { MigrationEntity } = require('lisk-framework/src/controller/migrations');
+const { MigrationEntity } = require('leasehold-lisk-framework/src/controller/migrations');
 
 module.exports = async ({ components: { storage, logger } }, accountLimit) => {
 	try {

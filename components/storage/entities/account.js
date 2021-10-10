@@ -19,7 +19,7 @@ const assert = require('assert');
 const _ = require('lodash');
 const {
 	entities: { Account: AccountEntity },
-} = require('lisk-framework/src/components/storage');
+} = require('leasehold-lisk-framework/src/components/storage');
 
 const defaultCreateValues = {
 	publicKey: null,

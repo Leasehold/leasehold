@@ -20,7 +20,7 @@ const _ = require('lodash');
 const {
 	entities: { Block: BlockEntity },
 	errors: { NonSupportedOperationError },
-} = require('lisk-framework/src/components/storage');
+} = require('leasehold-lisk-framework/src/components/storage');
 
 const defaultCreateValues = {};
 const createFields = [

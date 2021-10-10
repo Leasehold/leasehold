@@ -22,7 +22,7 @@ const {
 	utils: {
 		filterTypes: { NUMBER, TEXT },
 	},
-} = require('lisk-framework/src/components/storage');
+} = require('leasehold-lisk-framework/src/components/storage');
 
 const defaultCreateValues = {};
 
