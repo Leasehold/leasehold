@@ -18,7 +18,7 @@
     "@liskhq/lisk-cryptography": "^2.3.0",
     "@liskhq/lisk-transactions": "^2.3.1",
     "@liskhq/lisk-validator": "^0.2.1",
-    "leasehold-lisk-framework": "^0.4.1"
+    "leasehold-lisk-framework": "^1.0.0"
   },
   "devDependencies": {},
   "repository": {
