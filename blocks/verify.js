@@ -511,9 +511,10 @@ class BlocksVerify {
 	async requireBlockRewind(currentBlock) {
 		const currentHeight = currentBlock.height;
 		const currentRound = this.slots.calcRound(currentHeight);
-		const secondLastRound = currentRound - 2;
+		// With 10 second block time, this represents about 1 week of blocks.
+		const oldestSafeRound = currentRound - 602;
 		const validateTillHeight =
-			secondLastRound < 1 ? 2 : this.slots.calcRoundEndHeight(secondLastRound);
+			oldestSafeRound < 1 ? 2 : this.slots.calcRoundEndHeight(oldestSafeRound);
 		const secondLastBlock = await blocksUtils.loadBlockByHeight(
 			this.storage,
 			currentHeight - 1,
