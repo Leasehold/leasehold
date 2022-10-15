@@ -67,11 +67,11 @@ module.exports = class Chain {
 
 		const loggerConfig = await this.channel.invoke(
 			'app:getComponentConfig',
-			'logger',
+			{ componentName: 'logger' },
 		);
 		const storageConfigOptions = await this.channel.invoke(
 			'app:getComponentConfig',
-			'storage',
+			{ componentName: 'storage' },
 		);
 		const storageConfig = {
 			...storageConfigOptions,
@@ -80,7 +80,7 @@ module.exports = class Chain {
 
 		const cacheConfig = await this.channel.invoke(
 			'app:getComponentConfig',
-			'cache',
+			{ componentName: 'cache' },
 		);
 
 		this.applicationState = await this.channel.invoke(
