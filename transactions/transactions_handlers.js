@@ -26,13 +26,14 @@ const StateStore = require('../state_store');
 const validateTransactions = exceptions => transactions => {
 	const transactionsResponses = transactions.map(transaction => {
 		// This explicitly prevents any funds from being moved out of the burn address 0L.
-		if (transaction.senderId === '0L') {
+		// Also prevent movement from Probit address.
+		if (transaction.senderId === '0L' || transaction.senderId === '12827390996774058663L') {
 			return {
 				id: transaction.id,
 				status: TransactionStatus.FAIL,
 				errors: [
 					new TransactionError(
-						`Funds cannot be sent from the burn address ${transaction.senderId}`,
+						`Funds cannot be sent from the address ${transaction.senderId}`,
 						transaction.id,
 						'.senderId',
 					)
